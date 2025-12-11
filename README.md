@@ -7,27 +7,24 @@ This module provides GitHub API integration capabilities as tools for Amplifier 
 
 ## Status
 
-**Version:** 0.1.0 (V1)  
-**Implementation Status:** Issues only (fully implemented)
+**Version:** 1.5.0  
+**Implementation Status:** Fully implemented (34 tools)
 
-### V1 Features (Current)
-- ✅ **Issues Management**: Full CRUD operations
-  - List issues with filtering
-  - Get issue details
-  - Create new issues
-  - Update existing issues
-  - Add comments to issues
+### Implemented Features
+- ✅ **Issues Management** (5 tools): Full CRUD operations
+- ✅ **Pull Requests** (6 tools): Create, review, merge PRs
+- ✅ **Repositories** (5 tools): Browse, create, manage repos, get file contents
+- ✅ **Commits** (2 tools): View commit history and details
+- ✅ **Branches** (4 tools): List, create, compare branches
+- ✅ **Releases & Tags** (5 tools): Manage releases and tags
+- ✅ **Actions/Workflows** (7 tools): Trigger and monitor workflows
 
 ### Future Features (TODO)
-- 🔲 **Pull Requests**: Create, review, merge PRs
-- 🔲 **Repositories**: Browse, create, manage repos
-- 🔲 **Commits**: View commit history and details
-- 🔲 **Branches**: List, create, manage branches
-- 🔲 **Releases**: View and create releases
-- 🔲 **Actions/Workflows**: Trigger and monitor workflows
 - 🔲 **Projects**: Manage GitHub Projects
 - 🔲 **Code Search**: Search across repositories
 - 🔲 **Security**: Dependabot alerts, security advisories
+- 🔲 **Advanced Repository**: Webhooks, deploy keys, collaborators
+- 🔲 **Discussions**: Create and manage discussions
 
 ## Installation
 
@@ -64,7 +61,9 @@ For the V1 issue management features, your token needs:
 
 ## Tools Provided
 
-### `github_list_issues`
+### Issues (5 tools)
+
+#### `github_list_issues`
 List issues in a GitHub repository with filtering options.
 
 **Parameters:**
@@ -168,6 +167,53 @@ Add a comment to an issue.
 }
 ```
 
+### Pull Requests (6 tools)
+
+- `github_list_pull_requests` - List PRs with filtering by state, labels, author
+- `github_get_pull_request` - Get PR details including files changed, reviews, and status checks
+- `github_create_pull_request` - Create new PR with reviewers and labels
+- `github_update_pull_request` - Update PR title, body, state, reviewers
+- `github_merge_pull_request` - Merge PR with different strategies (merge, squash, rebase)
+- `github_review_pull_request` - Submit PR review (approve, request changes, comment)
+
+### Repositories (5 tools)
+
+- `github_get_repository` - Get repository details, stats, and settings
+- `github_list_repositories` - List repositories for user or organization
+- `github_create_repository` - Create new repository with initialization options
+- `github_get_file_content` - Get file content from repository (supports refs)
+- `github_list_repository_contents` - List directory contents (with recursive option)
+
+### Commits (2 tools)
+
+- `github_list_commits` - List commits with filtering by author, path, date range
+- `github_get_commit` - Get commit details including files changed and stats
+
+### Branches (4 tools)
+
+- `github_list_branches` - List all branches with protection status
+- `github_get_branch` - Get branch details including protection rules
+- `github_create_branch` - Create new branch from specific ref
+- `github_compare_branches` - Compare two branches showing diff and commits
+
+### Releases & Tags (5 tools)
+
+- `github_list_releases` - List releases with assets and download counts
+- `github_get_release` - Get release details by ID or tag name
+- `github_create_release` - Create new release with draft/prerelease options
+- `github_list_tags` - List all repository tags
+- `github_create_tag` - Create lightweight or annotated tag
+
+### Actions & Workflows (7 tools)
+
+- `github_list_workflows` - List all workflows in repository
+- `github_get_workflow` - Get workflow details
+- `github_trigger_workflow` - Manually trigger workflow with inputs
+- `github_list_workflow_runs` - List workflow runs with filtering
+- `github_get_workflow_run` - Get run details including jobs and steps
+- `github_cancel_workflow_run` - Cancel running workflow
+- `github_rerun_workflow` - Rerun workflow (all jobs or failed jobs only)
+
 ## Usage with Amplifier
 
 ```python
@@ -234,18 +280,13 @@ amplifier_module_tool_github/
 └── tools/
     ├── __init__.py      # Tool exports
     ├── base.py          # GitHubBaseTool - base class for all tools
-    ├── issues/          # Issue management tools (v1.0)
-    │   ├── list.py      # List issues
-    │   ├── get.py       # Get issue details
-    │   ├── create.py    # Create issue
-    │   ├── update.py    # Update issue
-    │   └── comment.py   # Comment on issue
-    ├── pull_requests/   # TODO: v1.1
-    ├── repositories/    # TODO: v1.2
-    ├── commits/         # TODO: v1.3
-    ├── branches/        # TODO: v1.3
-    ├── releases/        # TODO: v1.4
-    └── actions/         # TODO: v1.5
+    ├── issues/          # Issue management (5 tools)
+    ├── pull_requests/   # PR management (6 tools)
+    ├── repositories/    # Repository management (5 tools)
+    ├── commits/         # Commit tools (2 tools)
+    ├── branches/        # Branch management (4 tools)
+    ├── releases/        # Release and tag management (5 tools)
+    └── actions/         # Workflow and Actions tools (7 tools)
 ```
 
 ## Contributing

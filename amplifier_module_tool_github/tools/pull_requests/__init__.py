@@ -1,13 +1,17 @@
-"""
-Pull request tools for GitHub.
+"""Pull request management tools for GitHub."""
 
-TODO: Implement in v1.1
-- ListPullRequestsTool
-- GetPullRequestTool
-- CreatePullRequestTool
-- UpdatePullRequestTool
-- MergePullRequestTool
-- ReviewPullRequestTool
-"""
+from .list import ListPullRequestsTool
+from .get import GetPullRequestTool
+from .create import CreatePullRequestTool
+from .update import UpdatePullRequestTool
+from .merge import MergePullRequestTool
+from .review import ReviewPullRequestTool
 
-__all__ = []
+__all__ = [
+    "ListPullRequestsTool",
+    "GetPullRequestTool",
+    "CreatePullRequestTool",
+    "UpdatePullRequestTool",
+    "MergePullRequestTool",
+    "ReviewPullRequestTool",
+]

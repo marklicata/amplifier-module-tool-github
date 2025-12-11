@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "amplifier-module-tool-github"
-version = "1.0.0"
+version = "1.5.0"
 description = "GitHub integration tool module for Amplifier"
 readme = "README.md"
 requires-python = ">=3.11"

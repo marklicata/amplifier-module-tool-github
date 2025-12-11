@@ -1,9 +1,9 @@
-"""
-Commit tools for GitHub.
+"""Commit management tools for GitHub."""
 
-TODO: Implement in v1.3
-- ListCommitsTool
-- GetCommitTool
-"""
+from .list import ListCommitsTool
+from .get import GetCommitTool
 
-__all__ = []
+__all__ = [
+    "ListCommitsTool",
+    "GetCommitTool",
+]

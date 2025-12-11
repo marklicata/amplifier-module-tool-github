@@ -1,11 +1,13 @@
-"""
-Branch tools for GitHub.
+"""Branch management tools for GitHub."""
 
-TODO: Implement in v1.3
-- ListBranchesTool
-- GetBranchTool
-- CreateBranchTool
-- CompareBranchesTool
-"""
+from .list import ListBranchesTool
+from .get import GetBranchTool
+from .create import CreateBranchTool
+from .compare import CompareBranchesTool
 
-__all__ = []
+__all__ = [
+    "ListBranchesTool",
+    "GetBranchTool",
+    "CreateBranchTool",
+    "CompareBranchesTool",
+]

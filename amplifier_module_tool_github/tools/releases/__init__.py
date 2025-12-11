@@ -1,12 +1,15 @@
-"""
-Release tools for GitHub.
+"""Release and tag management tools for GitHub."""
 
-TODO: Implement in v1.4
-- ListReleasesTool
-- GetReleaseTool
-- CreateReleaseTool
-- ListTagsTool
-- CreateTagTool
-"""
+from .list import ListReleasesTool
+from .get import GetReleaseTool
+from .create import CreateReleaseTool
+from .list_tags import ListTagsTool
+from .create_tag import CreateTagTool
 
-__all__ = []
+__all__ = [
+    "ListReleasesTool",
+    "GetReleaseTool",
+    "CreateReleaseTool",
+    "ListTagsTool",
+    "CreateTagTool",
+]

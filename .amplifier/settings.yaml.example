@@ -1,0 +1,35 @@
+# Example .amplifier/settings.yaml configuration
+# Copy this file to .amplifier/settings.yaml and customize
+
+modules:
+  github:
+    # === Authentication Configuration ===
+    # Choose one of the following authentication methods:
+    
+    # Method 1: GitHub CLI (Recommended for development)
+    # Run: gh auth login
+    use_cli_auth: true
+    
+    # Method 2: Environment Variable
+    # Set GITHUB_TOKEN or GH_TOKEN in your shell
+    
+    # Method 3: Direct token (not recommended - don't commit!)
+    # token: ghp_your_personal_access_token_here
+    
+    # Prompt user if no authentication found
+    prompt_if_missing: true
+    
+    # === GitHub Enterprise (Optional) ===
+    # base_url: https://github.company.com/api/v3
+    
+    # === Repository Access Control (Optional) ===
+    # Leave empty or omit to allow access to all repositories
+    # Add repository URLs to restrict access to specific repos
+    repositories: []
+    
+    # Example: Restrict to specific repositories
+    # repositories:
+    #   - https://github.com/microsoft/vscode
+    #   - git@github.com:python/cpython.git
+    #   - facebook/react
+    #   - your-org/your-repo

@@ -40,9 +40,23 @@ uv pip install amplifier-module-tool-github
 
 ## Configuration
 
-The module supports multiple authentication methods, tried in the following order:
+Configuration is done through your `.amplifier/settings.yaml` file. See [`.amplifier/CONFIGURATION.md`](.amplifier/CONFIGURATION.md) for detailed examples.
+
+### Quick Start Configuration
+
+Create or edit `.amplifier/settings.yaml`:
+
+```yaml
+modules:
+  github:
+    use_cli_auth: true        # Use GitHub CLI authentication
+    prompt_if_missing: true   # Prompt if no auth found
+    repositories: []          # Empty = allow all repos
+```
 
 ### Authentication Methods
+
+The module supports multiple authentication methods, tried in the following order:
 
 1. **API Token (Explicit)** - Provide token directly in config
 2. **Environment Variable** - Set `GITHUB_TOKEN` or `GH_TOKEN`
@@ -52,11 +66,12 @@ The module supports multiple authentication methods, tried in the following orde
 ### Example Configurations
 
 #### Option 1: Direct Token Configuration
-```python
-config = {
-    "token": "ghp_your_personal_access_token",  # Explicit token
-    "base_url": "https://api.github.com"        # Optional (for GitHub Enterprise)
-}
+```yaml
+# .amplifier/settings.yaml
+modules:
+  github:
+    token: ghp_your_personal_access_token  # Explicit token
+    base_url: https://api.github.com       # Optional (for GitHub Enterprise)
 ```
 
 #### Option 2: Environment Variable
@@ -64,30 +79,36 @@ config = {
 # Set in your environment
 export GITHUB_TOKEN="ghp_your_personal_access_token"
 # or
-export GH_TOKEN="ghp_your_personal_access_token"
 ```
 
-```python
-config = {
-    "base_url": "https://api.github.com"  # Token will be read from environment
-}
+```yaml
+# .amplifier/settings.yaml
+modules:
+  github:
+    # Token will be read from environment automatically
+    use_cli_auth: false  # Optional: disable CLI auth fallback
+```
 ```
 
 #### Option 3: GitHub CLI Authentication
-```bash
-# Authenticate with GitHub CLI (one-time setup)
-gh auth login
 ```
 
-```python
-config = {
-    "use_cli_auth": True  # Default: True, will use gh CLI token
-}
+```yaml
+# .amplifier/settings.yaml
+modules:
+  github:
+    use_cli_auth: true  # Default: true, will use gh CLI token
 ```
 
-#### Option 4: Disable Interactive Prompt
-```python
-config = {
+#### Option 4: Interactive Prompt
+```yaml
+# .amplifier/settings.yaml
+modules:
+  github:
+    prompt_if_missing: true   # Prompts on startup (default)
+    # Or disable:
+    # prompt_if_missing: false
+```fig = {
     "prompt_if_missing": False  # Default: True, set False to disable prompting
 }
 ```
@@ -96,8 +117,34 @@ config = {
 
 - `token` (string, optional): GitHub personal access token or GitHub App token
 - `use_cli_auth` (bool, optional): Enable GitHub CLI authentication. Default: `True`
-- `prompt_if_missing` (bool, optional): Prompt user if no auth found. Default: `True`
-- `base_url` (string, optional): GitHub Enterprise URL. Default: `https://api.github.com`
+You can restrict the tool to only work with specific repositories by providing a list of repository URLs or identifiers:
+
+```yaml
+# .amplifier/settings.yaml
+modules:
+  github:
+    repositories:
+      - https://github.com/microsoft/vscode
+      - git@github.com:python/cpython.git
+      - facebook/react  # Direct owner/repo format also works
+``` "repositories": [
+        "https://github.com/microsoft/vscode",
+        "git@github.com:python/cpython.git",
+        "facebook/react",  # Direct owner/repo format also works
+    ]
+}
+```
+
+**Supported formats:**
+- HTTPS URLs: `https://github.com/owner/repo` or `https://github.com/owner/repo.git`
+- SSH URLs: `git@github.com:owner/repo.git`
+- Direct format: `owner/repo`
+- GitHub Enterprise URLs (when `base_url` is configured)
+
+When repositories are configured:
+- All operations will only work with the specified repositories
+- Attempting to access other repositories will result in a permission error
+- Leave empty or omit to allow access to all repositories (default behavior)
 
 ### Token Permissions
 
@@ -112,42 +159,131 @@ Your token needs the following permissions:
 3. Select required scopes: `repo` or `public_repo`
 4. Copy the token and use it in your configuration
 
-## Tools Provided
+## Tool Overview
 
-### Issues (5 tools)
+This module provides a **single unified tool** called `github` that supports **34 different operations**.
 
-#### `github_list_issues`
-List issues in a GitHub repository with filtering options.
+Instead of having 34 separate tools, all GitHub interactions go through one tool with an `operation` parameter that specifies what action to perform.
 
-**Parameters:**
-- `repository` (string, required): Repository name in `owner/repo` format
-- `state` (string, optional): Filter by state (`open`, `closed`, `all`). Default: `open`
-- `labels` (array, optional): Filter by labels
-- `assignee` (string, optional): Filter by assignee username
-- `creator` (string, optional): Filter by creator username
-- `mentioned` (string, optional): Filter by mentioned username
-- `sort` (string, optional): Sort by (`created`, `updated`, `comments`). Default: `created`
-- `direction` (string, optional): Sort direction (`asc`, `desc`). Default: `desc`
-- `limit` (integer, optional): Max results (1-100). Default: 30
+### Using the GitHub Tool
 
-**Example:**
-```json
-{
-  "repository": "microsoft/vscode",
-  "state": "open",
-  "labels": ["bug", "verified"],
-  "limit": 10
-}
+All operations follow this pattern:
+
+```python
+result = await amplifier.execute_tool(
+    "github",  # Single tool name
+    {
+        "operation": "operation_name",  # What to do
+        "parameters": {                  # Operation-specific params
+            # ... parameters for this operation
+        }
+    }
+)
 ```
 
-### `github_get_issue`
-Get detailed information about a specific issue.
+### Available Operations (34 total)
 
-**Parameters:**
-- `repository` (string, required): Repository name in `owner/repo` format
-- `issue_number` (integer, required): Issue number
-- `include_comments` (boolean, optional): Include comments. Default: `false`
-- `comments_limit` (integer, optional): Max comments to return (1-100). Default: 10
+The `operation` parameter accepts one of these values:
+
+**Issues (5 operations)**
+- `list_issues` - List issues in a repository
+- `get_issue` - Get detailed information about an issue
+- `create_issue` - Create a new issue
+- `update_issue` - Update an existing issue
+- `comment_issue` - Add a comment to an issue
+
+**Pull Requests (6 operations)**
+- `list_pull_requests` - List pull requests
+- `get_pull_request` - Get PR details
+- `create_pull_request` - Create a new PR
+- `update_pull_request` - Update a PR
+- `merge_pull_request` - Merge a PR
+- `review_pull_request` - Submit a PR review
+
+**Repositories (5 operations)**
+- `get_repository` - Get repository information
+- `list_repositories` - List repositories for user/org
+- `create_repository` - Create a new repository
+- `get_file_content` - Get file contents from a repository
+- `list_repository_contents` - List contents of a directory
+
+**Commits (2 operations)**
+- `list_commits` - List commits in a repository
+- `get_commit` - Get detailed commit information
+
+**Branches (4 operations)**
+- `list_branches` - List branches in a repository
+- `get_branch` - Get branch information
+- `create_branch` - Create a new branch
+- `compare_branches` - Compare two branches
+
+**Releases & Tags (5 operations)**
+- `list_releases` - List releases
+- `get_release` - Get release details
+- `create_release` - Create a new release
+- `list_tags` - List repository tags
+- `create_tag` - Create a new tag
+
+**Actions/Workflows (7 operations)**
+- `list_workflows` - List GitHub Actions workflows
+- `get_workflow` - Get workflow details
+- `trigger_workflow` - Trigger a workflow run
+- `list_workflow_runs` - List workflow runs
+- `get_workflow_run` - Get workflow run details
+- `cancel_workflow_run` - Cancel a running workflow
+- `rerun_workflow` - Rerun a failed workflow
+
+## Usage Examples
+
+### Example 1: List Issues
+
+```python
+result = await amplifier.execute_tool(
+    "github",
+    {
+        "operation": "list_issues",
+        "parameters": {
+            "repository": "microsoft/vscode",
+            "state": "open",
+            "labels": ["bug", "verified"],
+            "limit": 10
+        }
+    }
+)
+```
+
+### Example 2: Create a Pull Request
+
+```python
+result = await amplifier.execute_tool(
+    "github",
+    {
+        "operation": "create_pull_request",
+        "parameters": {
+            "repository": "owner/repo",
+            "title": "Add new feature",
+            "body": "This PR adds...",
+            "head": "feature-branch",
+            "base": "main"
+        }
+    }
+)
+```
+
+### Example 3: Get File Contents
+
+```python
+result = await amplifier.execute_tool(
+    "github",
+    {
+        "operation": "get_file_content",
+        "parameters": {
+            "repository": "owner/repo",
+            "path": "src/main.py",
+            "ref": "main"  # optional: branch/tag/commit
+        }
+    }
+)
 
 **Example:**
 ```json

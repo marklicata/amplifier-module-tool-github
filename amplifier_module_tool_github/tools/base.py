@@ -6,7 +6,7 @@ from typing import Any, TYPE_CHECKING
 if TYPE_CHECKING:
     from ..manager import GitHubManager
 
-from ..exceptions import AuthenticationError
+from ..exceptions import AuthenticationError, PermissionError
 
 try:
     from amplifier_core import ToolResult
@@ -84,3 +84,25 @@ class GitHubBaseTool:
         """
         if not self.manager.is_authenticated():
             raise AuthenticationError()
+    
+    def _check_repository_access(self, repository: str) -> ToolResult | None:
+        """
+        Check if access to a repository is allowed based on configuration.
+
+        Args:
+            repository: Repository name in owner/repo format
+
+        Returns:
+            ToolResult with error if not allowed, None otherwise
+        """
+        if not self.manager.is_repository_allowed(repository):
+            configured = self.manager.get_configured_repositories()
+            error = PermissionError(
+                f"Access to repository '{repository}' is not allowed. "
+                f"Configured repositories: {', '.join(configured)}"
+            )
+            return ToolResult(
+                success=False,
+                error=error.to_dict()
+            )
+        return None

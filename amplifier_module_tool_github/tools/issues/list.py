@@ -92,6 +92,12 @@ class ListIssuesTool(GitHubBaseTool):
             return auth_error
 
         repository = input_data.get("repository")
+        
+        # Check repository access
+        access_error = self._check_repository_access(repository)
+        if access_error:
+            return access_error
+        
         state = input_data.get("state", "open")
         labels = input_data.get("labels", [])
         assignee = input_data.get("assignee")

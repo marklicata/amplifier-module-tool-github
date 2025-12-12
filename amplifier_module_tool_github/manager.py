@@ -8,6 +8,7 @@ import logging
 import os
 import subprocess
 import getpass
+import re
 from typing import Any
 from datetime import datetime
 
@@ -49,6 +50,7 @@ class GitHubManager:
                 - use_cli_auth: Use GitHub CLI authentication if token not provided (default: True)
                 - prompt_if_missing: Prompt user for token if no auth found (default: True)
                 - base_url: GitHub Enterprise URL (optional, defaults to github.com)
+                - repositories: List of repository URLs or owner/repo strings to restrict access to (optional)
         """
         self.config = config
         self.token = config.get("token")
@@ -56,6 +58,10 @@ class GitHubManager:
         self.prompt_if_missing = config.get("prompt_if_missing", True)
         self.base_url = config.get("base_url", "https://api.github.com")
         self.client = None
+        
+        # Parse and store configured repositories
+        self.configured_repositories = self._parse_repositories(config.get("repositories", []))
+        self.restrict_to_configured = len(self.configured_repositories) > 0
 
         if Github is None:
             raise ImportError(
@@ -199,6 +205,94 @@ class GitHubManager:
     def is_authenticated(self) -> bool:
         """Check if GitHub client is authenticated."""
         return self.client is not None
+    
+    def _parse_repositories(self, repositories: list[str]) -> set[str]:
+        """
+        Parse repository configurations from URLs or owner/repo format.
+        
+        Args:
+            repositories: List of repository identifiers (URLs or owner/repo)
+        
+        Returns:
+            Set of normalized repository names in owner/repo format
+        """
+        parsed = set()
+        
+        for repo in repositories:
+            normalized = self._normalize_repository(repo)
+            if normalized:
+                parsed.add(normalized)
+                logger.debug(f"Configured repository: {normalized}")
+        
+        if parsed:
+            logger.info(f"Restricting access to {len(parsed)} configured repositories")
+        
+        return parsed
+    
+    def _normalize_repository(self, repo: str) -> str | None:
+        """
+        Normalize a repository identifier to owner/repo format.
+        
+        Accepts:
+        - https://github.com/owner/repo
+        - https://github.com/owner/repo.git
+        - git@github.com:owner/repo.git
+        - owner/repo
+        
+        Args:
+            repo: Repository identifier
+        
+        Returns:
+            Normalized repository name or None if invalid
+        """
+        repo = repo.strip()
+        
+        # Pattern 1: HTTPS URL (https://github.com/owner/repo or https://github.com/owner/repo.git)
+        https_match = re.match(r'https?://[^/]+/([^/]+/[^/]+?)(?:\.git)?/?$', repo)
+        if https_match:
+            return https_match.group(1)
+        
+        # Pattern 2: SSH URL (git@github.com:owner/repo.git)
+        ssh_match = re.match(r'git@[^:]+:([^/]+/[^/]+?)(?:\.git)?$', repo)
+        if ssh_match:
+            return ssh_match.group(1)
+        
+        # Pattern 3: Direct owner/repo format
+        if re.match(r'^[^/]+/[^/]+$', repo):
+            return repo
+        
+        logger.warning(f"Could not parse repository identifier: {repo}")
+        return None
+    
+    def is_repository_allowed(self, repo_name: str) -> bool:
+        """
+        Check if a repository is allowed based on configuration.
+        
+        Args:
+            repo_name: Repository name in owner/repo format
+        
+        Returns:
+            True if repository is allowed, False otherwise
+        """
+        # If no repositories configured, allow all
+        if not self.restrict_to_configured:
+            return True
+        
+        # Normalize the repo name for comparison
+        normalized = self._normalize_repository(repo_name)
+        if not normalized:
+            return False
+        
+        return normalized in self.configured_repositories
+    
+    def get_configured_repositories(self) -> list[str]:
+        """
+        Get the list of configured repositories.
+        
+        Returns:
+            List of repository names in owner/repo format
+        """
+        return sorted(self.configured_repositories)
 
     def get_repository(self, repo_full_name: str):
         """

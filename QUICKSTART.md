@@ -116,38 +116,85 @@ If you need to create a token:
 
 ## Step 3: Configure the Module
 
+Configuration is done in `.amplifier/settings.yaml`. Create or edit this file:
+
 ### Basic Configuration
 
-```python
-from amplifier_module_tool_github import mount
-
-# Minimal config - uses auto-detection
-config = {}
-
-# Or customize behavior
-config = {
-    "use_cli_auth": True,        # Enable GitHub CLI auth (default: True)
-    "prompt_if_missing": True,   # Prompt if no auth found (default: True)
-    "base_url": "https://api.github.com"  # For GitHub Enterprise, change this
-}
-
-# Mount the module with Amplifier
-await amplifier.mount_module(mount, config)
+```yaml
+# .amplifier/settings.yaml
+modules:
+  github:
+    # Minimal config - uses auto-detection
+    use_cli_auth: true        # Enable GitHub CLI auth (default: true)
+    prompt_if_missing: true   # Prompt if no auth found (default: true)
 ```
 
-## Step 4: Use the Tools
+### Advanced Configuration
+
+```yaml
+# .amplifier/settings.yaml
+modules:
+  github:
+    use_cli_auth: true
+    prompt_if_missing: true
+    base_url: https://api.github.com  # For GitHub Enterprise, change this
+    
+    # Optional: restrict to specific repos
+    repositories:
+      - https://github.com/microsoft/vscode
+      - python/cpython
+```
+
+### Restricting to Specific Repositories
+
+For security or to limit scope, you can configure specific repositories in `.amplifier/settings.yaml`:
+
+```yaml
+# .amplifier/settings.yaml
+modules:
+  github:
+    repositories:
+      - https://github.com/your-org/repo1
+      - git@github.com:your-org/repo2.git
+      - your-org/repo3  # owner/repo format
+```
+
+When configured, the tool will only allow operations on these repositories. Attempts to access other repos will return a permission error.
+
+See [`.amplifier/CONFIGURATION.md`](.amplifier/CONFIGURATION.md) for complete configuration examples.
+
+## Step 4: Use the GitHub Tool
+
+The module provides a **single unified tool** called `github` with 34 operations.
+
+All operations follow this pattern:
+
+```python
+result = await amplifier.execute_tool(
+    "github",  # Single tool name
+    {
+        "operation": "operation_name",  # What to do
+        "parameters": {                  # Operation-specific params
+            # ... parameters
+        }
+    }
+)
+```
 
 ### Example 1: List Open Issues
 
 ```python
 # List open bugs in a repository
 result = await amplifier.execute_tool(
-    "github_list_issues",
+    "github",
     {
-        "repository": "microsoft/vscode",
-        "state": "open",
-        "labels": ["bug"],
-        "limit": 10
+        "operation": "list_issues",
+        "parameters": {
+            "repository": "microsoft/vscode",
+            "state": "open",
+            "labels": ["bug"],
+            "limit": 10
+        }
     }
 )
 
@@ -161,11 +208,14 @@ if result.success:
 ```python
 # Get details of a specific issue
 result = await amplifier.execute_tool(
-    "github_get_issue",
+    "github",
     {
-        "repository": "microsoft/vscode",
-        "issue_number": 12345,
-        "include_comments": True
+        "operation": "get_issue",
+        "parameters": {
+            "repository": "microsoft/vscode",
+            "issue_number": 12345,
+            "include_comments": True
+        }
     }
 )
 
@@ -178,26 +228,87 @@ if result.success:
         print(f"Comments: {len(issue['comments'])}")
 ```
 
-### Example 3: Create an Issue
+### Example 3: Create a Pull Request
 
 ```python
-# Create a new issue
+# Create a new pull request
 result = await amplifier.execute_tool(
-    "github_create_issue",
+    "github",
     {
-        "repository": "your-username/your-repo",
-        "title": "Feature request: Add dark mode",
-        "body": "It would be great to have a dark mode option...",
-        "labels": ["enhancement", "ui"]
+        "operation": "create_pull_request",
+        "parameters": {
+            "repository": "your-username/your-repo",
+            "title": "Add dark mode feature",
+            "body": "This PR implements dark mode...",
+            "head": "feature/dark-mode",
+            "base": "main"
+        }
     }
 )
 
 if result.success:
-    issue = result.output["issue"]
-    print(f"Created issue #{issue['number']}: {issue['url']}")
+    pr = result.output["pull_request"]
+    print(f"Created PR #{pr['number']}: {pr['url']}")
 ```
 
-### Example 4: Update an Issue
+### Example 4: Get File Contents
+
+```python
+# Read a file from a repository
+result = await amplifier.execute_tool(
+    "github",
+    {
+        "operation": "get_file_content",
+        "parameters": {
+            "repository": "microsoft/vscode",
+            "path": "README.md",
+            "ref": "main"  # Optional: branch, tag, or commit
+        }
+    }
+)
+
+if result.success:
+    content = result.output["content"]
+    print(f"File size: {result.output['size']} bytes")
+    print(f"Content: {content[:100]}...")  # First 100 chars
+```
+
+### Example 5: Trigger a Workflow
+
+```python
+# Trigger a GitHub Actions workflow
+result = await amplifier.execute_tool(
+    "github",
+    {
+        "operation": "trigger_workflow",
+        "parameters": {
+            "repository": "your-username/your-repo",
+            "workflow_id": "ci.yml",
+            "ref": "main",
+            "inputs": {
+                "environment": "production"
+            }
+        }
+    }
+)
+
+if result.success:
+    print("Workflow triggered successfully!")
+```
+
+## All Available Operations
+
+The `github` tool supports 34 operations across these categories:
+
+- **Issues**: `list_issues`, `get_issue`, `create_issue`, `update_issue`, `comment_issue`
+- **Pull Requests**: `list_pull_requests`, `get_pull_request`, `create_pull_request`, `update_pull_request`, `merge_pull_request`, `review_pull_request`
+- **Repositories**: `get_repository`, `list_repositories`, `create_repository`, `get_file_content`, `list_repository_contents`
+- **Commits**: `list_commits`, `get_commit`
+- **Branches**: `list_branches`, `get_branch`, `create_branch`, `compare_branches`
+- **Releases**: `list_releases`, `get_release`, `create_release`, `list_tags`, `create_tag`
+- **Workflows**: `list_workflows`, `get_workflow`, `trigger_workflow`, `list_workflow_runs`, `get_workflow_run`, `cancel_workflow_run`, `rerun_workflow`
+
+See the [README](README.md) for detailed documentation on each operation
 
 ```python
 # Close an issue with updated labels

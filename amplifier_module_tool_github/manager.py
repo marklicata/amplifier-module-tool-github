@@ -60,8 +60,11 @@ class GitHubManager:
         self.client = None
         
         # Parse and store configured repositories
-        self.configured_repositories = self._parse_repositories(config.get("repositories", []))
+        repos_raw = config.get("repositories", [])
+        logger.debug(f"Raw repositories from config: {repos_raw} (type: {type(repos_raw)})")
+        self.configured_repositories = self._parse_repositories(repos_raw)
         self.restrict_to_configured = len(self.configured_repositories) > 0
+        logger.info(f"Manager initialized with {len(self.configured_repositories)} configured repositories")
 
         if Github is None:
             raise ImportError(

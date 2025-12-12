@@ -82,6 +82,8 @@ async def mount(coordinator: "ModuleCoordinator", config: dict[str, Any] | None 
     config = config or {}
 
     logger.info("Mounting GitHub module...")
+    logger.debug(f"Config received: {config}")
+    logger.debug(f"Repositories in config: {config.get('repositories', [])}")
 
     try:
         # Initialize the manager

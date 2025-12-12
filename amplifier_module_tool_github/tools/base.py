@@ -97,12 +97,12 @@ class GitHubBaseTool:
         """
         if not self.manager.is_repository_allowed(repository):
             configured = self.manager.get_configured_repositories()
-            error = PermissionError(
-                f"Access to repository '{repository}' is not allowed. "
-                f"Configured repositories: {', '.join(configured)}"
-            )
             return ToolResult(
                 success=False,
-                error=error.to_dict()
+                error={
+                    "message": f"Access to repository '{repository}' is not allowed. "
+                              f"Configured repositories: {', '.join(configured)}",
+                    "code": "PERMISSION_DENIED"
+                }
             )
         return None

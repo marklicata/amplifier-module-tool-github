@@ -182,7 +182,7 @@ class GitHubUnifiedTool:
 
         except Exception as e:
             logger.error(f"Unexpected error in GitHub tool: {e}")
-            error = ToolExecutionError(f"Unexpected error: {str(e)}")
+            error = ToolExecutionError("github", f"Unexpected error: {str(e)}")
             return ToolResult(success=False, error=error.to_dict())
 
     def get_operation_schema(self, operation: str) -> dict[str, Any] | None:

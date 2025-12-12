@@ -40,24 +40,77 @@ uv pip install amplifier-module-tool-github
 
 ## Configuration
 
-The module requires a GitHub token for authentication. You can use either:
-- Personal Access Token (Classic or Fine-grained)
-- GitHub App installation token
+The module supports multiple authentication methods, tried in the following order:
 
-### Example Configuration
+### Authentication Methods
 
+1. **API Token (Explicit)** - Provide token directly in config
+2. **Environment Variable** - Set `GITHUB_TOKEN` or `GH_TOKEN`
+3. **GitHub CLI** - Use existing `gh auth login` credentials
+4. **Interactive Prompt** - Fallback to user prompt if none of the above
+
+### Example Configurations
+
+#### Option 1: Direct Token Configuration
 ```python
 config = {
-    "token": "ghp_your_personal_access_token",  # Required
+    "token": "ghp_your_personal_access_token",  # Explicit token
     "base_url": "https://api.github.com"        # Optional (for GitHub Enterprise)
 }
 ```
 
+#### Option 2: Environment Variable
+```bash
+# Set in your environment
+export GITHUB_TOKEN="ghp_your_personal_access_token"
+# or
+export GH_TOKEN="ghp_your_personal_access_token"
+```
+
+```python
+config = {
+    "base_url": "https://api.github.com"  # Token will be read from environment
+}
+```
+
+#### Option 3: GitHub CLI Authentication
+```bash
+# Authenticate with GitHub CLI (one-time setup)
+gh auth login
+```
+
+```python
+config = {
+    "use_cli_auth": True  # Default: True, will use gh CLI token
+}
+```
+
+#### Option 4: Disable Interactive Prompt
+```python
+config = {
+    "prompt_if_missing": False  # Default: True, set False to disable prompting
+}
+```
+
+### Configuration Options
+
+- `token` (string, optional): GitHub personal access token or GitHub App token
+- `use_cli_auth` (bool, optional): Enable GitHub CLI authentication. Default: `True`
+- `prompt_if_missing` (bool, optional): Prompt user if no auth found. Default: `True`
+- `base_url` (string, optional): GitHub Enterprise URL. Default: `https://api.github.com`
+
 ### Token Permissions
 
-For the V1 issue management features, your token needs:
+Your token needs the following permissions:
 - `repo` scope (for private repos) or `public_repo` (for public repos only)
-- Read and write access to issues
+- Read and write access to issues, pull requests, and other resources you want to manage
+
+### Creating a Personal Access Token
+
+1. Go to [GitHub Settings > Tokens](https://github.com/settings/tokens)
+2. Click "Generate new token" (classic)
+3. Select required scopes: `repo` or `public_repo`
+4. Copy the token and use it in your configuration
 
 ## Tools Provided
 

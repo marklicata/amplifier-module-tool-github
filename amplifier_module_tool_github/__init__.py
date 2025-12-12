@@ -4,24 +4,23 @@ GitHub Integration Module for Amplifier
 This module provides GitHub API integration capabilities as tools for Amplifier LLM agents.
 It enables interaction with GitHub repositories, issues, pull requests, and other GitHub features.
 
-V1 Implementation Status:
-- ✓ Issues: Full CRUD operations and commenting
-- TODO: Pull Requests
-- TODO: Repositories  
-- TODO: Commits
-- TODO: Branches
-- TODO: Releases
-- TODO: Actions/Workflows
-- TODO: Projects
-- TODO: Code Search
-- TODO: Security/Dependabot
+Implementation Status: Version 1.5.0
+- ✅ Issues: Full CRUD operations and commenting (5 tools)
+- ✅ Pull Requests: Create, review, merge PRs (6 tools)
+- ✅ Repositories: Browse, create, manage repos (5 tools)
+- ✅ Commits: View commit history and details (2 tools)
+- ✅ Branches: List, create, compare branches (4 tools)
+- ✅ Releases & Tags: Manage releases and tags (5 tools)
+- ✅ Actions/Workflows: Trigger and monitor workflows (7 tools)
 
-Tools provided (V1):
-- github_list_issues: List issues in a repository
-- github_get_issue: Get detailed information about an issue
-- github_create_issue: Create a new issue
-- github_update_issue: Update an existing issue
-- github_comment_issue: Add a comment to an issue
+Total: 34 tools implemented
+
+Future Features:
+- 🔲 Projects: Manage GitHub Projects
+- 🔲 Code Search: Search across repositories
+- 🔲 Security: Dependabot alerts, security advisories
+- 🔲 Advanced Repository: Webhooks, deploy keys, collaborators
+- 🔲 Discussions: Create and manage discussions
 """
 
 import logging
@@ -44,14 +43,50 @@ from .exceptions import (
     ToolExecutionError,
 )
 from .tools import (
+    # Issues
     ListIssuesTool,
     GetIssueTool,
     CreateIssueTool,
     UpdateIssueTool,
     CommentIssueTool,
+    # Pull Requests
+    ListPullRequestsTool,
+    GetPullRequestTool,
+    CreatePullRequestTool,
+    UpdatePullRequestTool,
+    MergePullRequestTool,
+    ReviewPullRequestTool,
+    # Repositories
+    GetRepositoryTool,
+    ListRepositoriesTool,
+    CreateRepositoryTool,
+    GetFileContentTool,
+    ListRepositoryContentsTool,
+    # Commits
+    ListCommitsTool,
+    GetCommitTool,
+    # Branches
+    ListBranchesTool,
+    GetBranchTool,
+    CreateBranchTool,
+    CompareBranchesTool,
+    # Releases
+    ListReleasesTool,
+    GetReleaseTool,
+    CreateReleaseTool,
+    ListTagsTool,
+    CreateTagTool,
+    # Actions
+    ListWorkflowsTool,
+    GetWorkflowTool,
+    TriggerWorkflowTool,
+    ListWorkflowRunsTool,
+    GetWorkflowRunTool,
+    CancelWorkflowRunTool,
+    RerunWorkflowTool,
 )
 
-__version__ = "0.1.0"
+__version__ = "1.5.0"
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +101,16 @@ async def mount(coordinator: "ModuleCoordinator", config: dict[str, Any] | None 
     Args:
         coordinator: The ModuleCoordinator instance for registering capabilities
         config: Optional configuration dictionary with settings:
-            - token: GitHub personal access token or GitHub App token (required)
+            - token: GitHub personal access token or GitHub App token (optional)
+            - use_cli_auth: Use GitHub CLI authentication if token not provided (default: True)
+            - prompt_if_missing: Prompt user for token if no auth found (default: True)
             - base_url: GitHub Enterprise URL (optional, defaults to github.com)
+    
+    Authentication is attempted in this order:
+        1. Explicit token in config
+        2. GITHUB_TOKEN or GH_TOKEN environment variable
+        3. GitHub CLI (gh auth token) if use_cli_auth is True
+        4. Interactive prompt if prompt_if_missing is True
 
     Returns:
         Async cleanup function to be called when the module is unmounted
@@ -81,59 +124,50 @@ async def mount(coordinator: "ModuleCoordinator", config: dict[str, Any] | None 
         manager = GitHubManager(config)
         await manager.start()
 
-        # Create tool instances - V1: Issues only
+        # Create all tool instances (34 tools)
         tools = [
+            # Issues (5 tools)
             ListIssuesTool(manager),
             GetIssueTool(manager),
             CreateIssueTool(manager),
             UpdateIssueTool(manager),
             CommentIssueTool(manager),
+            # Pull Requests (6 tools)
+            ListPullRequestsTool(manager),
+            GetPullRequestTool(manager),
+            CreatePullRequestTool(manager),
+            UpdatePullRequestTool(manager),
+            MergePullRequestTool(manager),
+            ReviewPullRequestTool(manager),
+            # Repositories (5 tools)
+            GetRepositoryTool(manager),
+            ListRepositoriesTool(manager),
+            CreateRepositoryTool(manager),
+            GetFileContentTool(manager),
+            ListRepositoryContentsTool(manager),
+            # Commits (2 tools)
+            ListCommitsTool(manager),
+            GetCommitTool(manager),
+            # Branches (4 tools)
+            ListBranchesTool(manager),
+            GetBranchTool(manager),
+            CreateBranchTool(manager),
+            CompareBranchesTool(manager),
+            # Releases (5 tools)
+            ListReleasesTool(manager),
+            GetReleaseTool(manager),
+            CreateReleaseTool(manager),
+            ListTagsTool(manager),
+            CreateTagTool(manager),
+            # Actions (7 tools)
+            ListWorkflowsTool(manager),
+            GetWorkflowTool(manager),
+            TriggerWorkflowTool(manager),
+            ListWorkflowRunsTool(manager),
+            GetWorkflowRunTool(manager),
+            CancelWorkflowRunTool(manager),
+            RerunWorkflowTool(manager),
         ]
-
-        # TODO: Add more tools in future versions:
-        # Pull Requests:
-        #   - ListPullRequestsTool(manager)
-        #   - GetPullRequestTool(manager)
-        #   - CreatePullRequestTool(manager)
-        #   - UpdatePullRequestTool(manager)
-        #   - MergePullRequestTool(manager)
-        #   - ReviewPullRequestTool(manager)
-        #
-        # Repositories:
-        #   - GetRepositoryTool(manager)
-        #   - ListRepositoriesTool(manager)
-        #   - CreateRepositoryTool(manager)
-        #
-        # Commits:
-        #   - ListCommitsTool(manager)
-        #   - GetCommitTool(manager)
-        #
-        # Branches:
-        #   - ListBranchesTool(manager)
-        #   - GetBranchTool(manager)
-        #   - CreateBranchTool(manager)
-        #
-        # Releases:
-        #   - ListReleasesTool(manager)
-        #   - GetReleaseTool(manager)
-        #   - CreateReleaseTool(manager)
-        #
-        # Actions:
-        #   - ListWorkflowsTool(manager)
-        #   - TriggerWorkflowTool(manager)
-        #   - GetWorkflowRunTool(manager)
-        #
-        # Projects:
-        #   - ListProjectsTool(manager)
-        #   - GetProjectTool(manager)
-        #
-        # Code:
-        #   - SearchCodeTool(manager)
-        #   - GetFileContentTool(manager)
-        #
-        # Security:
-        #   - ListDependabotAlertsTool(manager)
-        #   - ListSecurityAdvisoriesTool(manager)
 
         # Register each tool with the coordinator
         for tool in tools:

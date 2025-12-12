@@ -6,7 +6,10 @@ Get started with the GitHub module for Amplifier in minutes!
 
 - Python 3.11 or higher
 - GitHub account
-- GitHub personal access token
+- One of the following for authentication:
+  - GitHub personal access token (see Step 2)
+  - GitHub CLI (`gh`) installed and authenticated
+  - Interactive prompt (will ask for token on startup)
 
 ## Step 1: Installation
 
@@ -20,9 +23,90 @@ pip install amplifier-module-tool-github
 uv pip install amplifier-module-tool-github
 ```
 
-## Step 2: Get a GitHub Token
+## Step 2: Authentication Setup
 
-1. Go to GitHub Settings → Developer settings → Personal access tokens
+The module supports **three authentication methods** (tried in order):
+
+### Option A: GitHub CLI (Recommended for Development)
+
+Easiest option - uses your existing GitHub CLI credentials:
+
+```bash
+# Authenticate once with GitHub CLI
+gh auth login
+```
+
+```python
+from amplifier_module_tool_github import mount
+
+# No token needed - will use gh CLI automatically
+config = {}
+
+await amplifier.mount_module(mount, config)
+```
+
+### Option B: Environment Variable
+
+Set your token as an environment variable:
+
+```bash
+# Windows (PowerShell)
+$env:GITHUB_TOKEN = "ghp_your_token_here"
+
+# Linux/macOS
+export GITHUB_TOKEN="ghp_your_token_here"
+```
+
+```python
+from amplifier_module_tool_github import mount
+
+# No token in config - will read from environment
+config = {}
+
+await amplifier.mount_module(mount, config)
+```
+
+### Option C: Direct Token Configuration
+
+Provide token directly in config (good for production):
+
+```python
+from amplifier_module_tool_github import mount
+
+config = {
+    "token": "ghp_your_token_here",  # Your personal access token
+}
+
+await amplifier.mount_module(mount, config)
+```
+
+### Option D: Interactive Prompt
+
+If no authentication is found, the module will prompt you:
+
+```python
+from amplifier_module_tool_github import mount
+
+# Empty config - will prompt for token on startup
+config = {}
+
+await amplifier.mount_module(mount, config)
+# Will display: "GitHub Authentication Required" prompt
+```
+
+To disable the prompt:
+
+```python
+config = {
+    "prompt_if_missing": False  # No prompt, fail if no auth found
+}
+```
+
+### Getting a Personal Access Token
+
+If you need to create a token:
+
+1. Go to [GitHub Settings → Tokens](https://github.com/settings/tokens)
 2. Click "Generate new token (classic)"
 3. Give it a name like "Amplifier GitHub Module"
 4. Select scopes:
@@ -32,14 +116,19 @@ uv pip install amplifier-module-tool-github
 
 ## Step 3: Configure the Module
 
+### Basic Configuration
+
 ```python
 from amplifier_module_tool_github import mount
 
-# Your configuration
+# Minimal config - uses auto-detection
+config = {}
+
+# Or customize behavior
 config = {
-    "token": "ghp_your_token_here",  # Replace with your token
-    # Optional: for GitHub Enterprise
-    # "base_url": "https://github.company.com/api/v3"
+    "use_cli_auth": True,        # Enable GitHub CLI auth (default: True)
+    "prompt_if_missing": True,   # Prompt if no auth found (default: True)
+    "base_url": "https://api.github.com"  # For GitHub Enterprise, change this
 }
 
 # Mount the module with Amplifier

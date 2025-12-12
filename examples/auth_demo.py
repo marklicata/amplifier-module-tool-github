@@ -5,8 +5,34 @@ This script demonstrates the different authentication methods
 supported by the amplifier-module-tool-github.
 """
 
+import sys
+from pathlib import Path
+
+# Add parent directory to path so we can import the module without installing
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import asyncio
+import yaml
 from amplifier_module_tool_github import GitHubManager
+
+
+def load_config_from_amplifier_settings() -> dict:
+    """Load GitHub config from .amplifier/settings.yaml if it exists."""
+    settings_path = Path.home() / ".amplifier" / "settings.yaml"
+    
+    if settings_path.exists():
+        try:
+            with open(settings_path, 'r') as f:
+                settings = yaml.safe_load(f)
+                config = settings.get('modules', {}).get('github', {})
+                print(f"✓ Loaded config from {settings_path}")
+                return config
+        except Exception as e:
+            print(f"Warning: Could not load .amplifier/settings.yaml: {e}")
+            return {}
+    else:
+        print(f"Note: No .amplifier/settings.yaml found at {settings_path}")
+        return {}
 
 
 async def demo_explicit_token():

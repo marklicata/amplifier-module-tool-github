@@ -4,8 +4,34 @@ Example usage of the unified GitHub tool.
 This demonstrates how to use the single 'github' tool with different operations.
 """
 
+import sys
+from pathlib import Path
+
+# Add parent directory to path so we can import the module without installing
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import asyncio
+import yaml
 from amplifier_module_tool_github import GitHubManager, GitHubUnifiedTool
+
+
+def load_config_from_amplifier_settings() -> dict:
+    """Load GitHub config from .amplifier/settings.yaml if it exists."""
+    settings_path = Path.home() / ".amplifier" / "settings.yaml"
+    
+    if settings_path.exists():
+        try:
+            with open(settings_path, 'r') as f:
+                settings = yaml.safe_load(f)
+                config = settings.get('modules', {}).get('github', {})
+                print(f"✓ Loaded config from {settings_path}")
+                return config
+        except Exception as e:
+            print(f"Warning: Could not load .amplifier/settings.yaml: {e}")
+            return {}
+    else:
+        print(f"Note: No .amplifier/settings.yaml found at {settings_path}")
+        return {}
 
 
 async def example_list_issues():
@@ -14,8 +40,11 @@ async def example_list_issues():
     print("Example 1: List Issues")
     print("="*70)
     
+    # Load config from .amplifier/settings.yaml (or use empty dict)
+    config = load_config_from_amplifier_settings()
+    
     # Initialize manager (will use auto-detected auth)
-    manager = GitHubManager({})
+    manager = GitHubManager(config)
     await manager.start()
     
     if not manager.is_authenticated():
@@ -53,7 +82,8 @@ async def example_create_issue():
     print("Example 2: Create Issue")
     print("="*70)
     
-    manager = GitHubManager({})
+    config = load_config_from_amplifier_settings()
+    manager = GitHubManager(config)
     await manager.start()
     
     if not manager.is_authenticated():
@@ -89,7 +119,8 @@ async def example_get_file_content():
     print("Example 3: Get File Content")
     print("="*70)
     
-    manager = GitHubManager({})
+    config = load_config_from_amplifier_settings()
+    manager = GitHubManager(config)
     await manager.start()
     
     if not manager.is_authenticated():
@@ -124,7 +155,8 @@ async def example_list_pull_requests():
     print("Example 4: List Pull Requests")
     print("="*70)
     
-    manager = GitHubManager({})
+    config = load_config_from_amplifier_settings()
+    manager = GitHubManager(config)
     await manager.start()
     
     if not manager.is_authenticated():

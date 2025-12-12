@@ -330,12 +330,12 @@ class GitHubManager:
             return {"authenticated": False}
 
         rate_limit = self.client.get_rate_limit()
-        core = rate_limit.core
+        rate = rate_limit.rate
 
         return {
             "authenticated": True,
-            "limit": core.limit,
-            "remaining": core.remaining,
-            "reset": core.reset.isoformat(),
-            "used": core.limit - core.remaining,
+            "limit": rate.limit,
+            "remaining": rate.remaining,
+            "reset": rate.reset.isoformat(),
+            "used": rate.limit - rate.remaining,
         }

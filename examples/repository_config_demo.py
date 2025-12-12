@@ -4,8 +4,30 @@ Example: Repository Access Control
 Demonstrates how to restrict GitHub tool access to specific repositories.
 """
 
+import sys
+from pathlib import Path
+
+# Add parent directory to path so we can import the module without installing
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import asyncio
-from amplifier_module_tool_github import GitHubManager, GitHubUnifiedTool
+import yaml
+from amplifier_module_tool_github import GitHubUnifiedTool, GitHubManager
+
+
+def load_config_from_amplifier_settings() -> dict:
+    """Load GitHub config from .amplifier/settings.yaml if it exists."""
+    settings_path = Path.home() / ".amplifier" / "settings.yaml"
+    
+    if settings_path.exists():
+        try:
+            with open(settings_path, 'r') as f:
+                settings = yaml.safe_load(f)
+                return settings.get('modules', {}).get('github', {})
+        except Exception as e:
+            print(f"Warning: Could not load .amplifier/settings.yaml: {e}")
+            return {}
+    return {}
 
 
 async def example_unrestricted_access():

@@ -161,11 +161,24 @@ modules:
 
 When configured, the tool will only allow operations on these repositories. Attempts to access other repos will return a permission error.
 
-See [`.amplifier/CONFIGURATION.md`](.amplifier/CONFIGURATION.md) for complete configuration examples.
+See [`CONFIGURATION.md`](CONFIGURATION.md) for complete configuration examples and [`examples/settings.yaml.example`](examples/settings.yaml.example) for a template.
 
 ## Step 4: Use the GitHub Tool
 
 The module provides a **single unified tool** called `github` with 34 operations.
+
+### Understanding Operation Types
+
+**Repository-Specific Operations** (Most operations)
+- Can query across ALL configured repositories when no `repository` parameter is provided
+- Or target a specific repository when `repository` parameter is specified
+- Examples: `list_issues`, `list_pull_requests`
+
+**User-Level Operations**
+- Work across your account or organization
+- Examples: `list_repositories`, `create_repository`
+
+> **Pro Tip**: Configure repositories in `.amplifier/settings.yaml` to enable powerful cross-repository queries like "show me all open issues across my projects"!
 
 All operations follow this pattern:
 
@@ -181,16 +194,39 @@ result = await amplifier.execute_tool(
 )
 ```
 
-### Example 1: List Open Issues
+### Example 1: Query All Configured Repositories
 
 ```python
-# List open bugs in a repository
+# With repositories configured in settings.yaml, find all open issues assigned to you
 result = await amplifier.execute_tool(
     "github",
     {
         "operation": "list_issues",
         "parameters": {
-            "repository": "microsoft/vscode",
+            # No "repository" parameter - queries ALL configured repos!
+            "state": "open",
+            "assignee": "myusername",
+            "limit": 50
+        }
+    }
+)
+
+if result.success:
+    print(f"Found {result.output['count']} issues across {len(result.output['repositories_queried'])} repositories:")
+    for issue in result.output["issues"]:
+        print(f"{issue['repository']}#{issue['number']}: {issue['title']}")
+```
+
+### Example 2: Query a Specific Repository
+
+```python
+# Target a single repository
+result = await amplifier.execute_tool(
+    "github",
+    {
+        "operation": "list_issues",
+        "parameters": {
+            "repository": "microsoft/vscode",  # Specific repo
             "state": "open",
             "labels": ["bug"],
             "limit": 10
@@ -203,7 +239,7 @@ if result.success:
         print(f"#{issue['number']}: {issue['title']}")
 ```
 
-### Example 2: Get Issue Details
+### Example 3: Get Issue Details
 
 ```python
 # Get details of a specific issue

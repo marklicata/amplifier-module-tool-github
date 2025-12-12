@@ -1,5 +1,5 @@
 # Example .amplifier/settings.yaml configuration
-# Copy this file to .amplifier/settings.yaml and customize
+# Copy this file to .amplifier/settings.yaml in your project root and customize
 
 modules:
   github:
@@ -12,6 +12,7 @@ modules:
     
     # Method 2: Environment Variable
     # Set GITHUB_TOKEN or GH_TOKEN in your shell
+    # export GITHUB_TOKEN="ghp_your_token_here"
     
     # Method 3: Direct token (not recommended - don't commit!)
     # token: ghp_your_personal_access_token_here
@@ -20,6 +21,7 @@ modules:
     prompt_if_missing: true
     
     # === GitHub Enterprise (Optional) ===
+    # Uncomment and set if using GitHub Enterprise
     # base_url: https://github.company.com/api/v3
     
     # === Repository Access Control (Optional) ===
@@ -33,3 +35,18 @@ modules:
     #   - git@github.com:python/cpython.git
     #   - facebook/react
     #   - your-org/your-repo
+    
+    # === Cross-Repository Queries ===
+    # When repositories are configured, operations like list_issues and
+    # list_pull_requests can query across ALL configured repos when you
+    # don't provide a repository parameter!
+    #
+    # Example:
+    # result = await amplifier.execute_tool("github", {
+    #     "operation": "list_issues",
+    #     "parameters": {
+    #         # No "repository" parameter = queries all configured repos!
+    #         "assignee": "myusername",
+    #         "state": "open"
+    #     }
+    # })

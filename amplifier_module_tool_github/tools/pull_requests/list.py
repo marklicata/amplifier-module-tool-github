@@ -37,7 +37,11 @@ class ListPullRequestsTool(GitHubBaseTool):
             "properties": {
                 "repository": {
                     "type": "string",
-                    "description": "Full repository name in format 'owner/repo' (e.g., 'microsoft/vscode')"
+                    "description": (
+                        "Full repository name in format 'owner/repo' (e.g., 'microsoft/vscode'). "
+                        "Optional if repositories are configured - will search across all configured repositories. "
+                        "If provided, searches only this specific repository."
+                    )
                 },
                 "state": {
                     "type": "string",
@@ -73,11 +77,11 @@ class ListPullRequestsTool(GitHubBaseTool):
                     "maximum": 100
                 }
             },
-            "required": ["repository"]
+            "required": []
         }
 
     async def execute(self, input_data: dict[str, Any]) -> ToolResult:
-        """List pull requests in a repository."""
+        """List pull requests in a repository or across all configured repositories."""
         # Check authentication
         auth_error = self._check_authentication()
         if auth_error:
@@ -91,72 +95,103 @@ class ListPullRequestsTool(GitHubBaseTool):
         direction = input_data.get("direction", "desc")
         limit = input_data.get("limit", 30)
 
-        if not repository:
-            return ToolResult(
-                success=False,
-                error={"message": "repository parameter is required", "code": "MISSING_PARAMETER"}
-            )
+        # Determine which repositories to query
+        if repository:
+            # Single repository specified
+            access_error = self._check_repository_access(repository)
+            if access_error:
+                return access_error
+            repositories_to_query = [repository]
+        else:
+            # No repository specified - check if we have configured repos
+            configured_repos = self.manager.get_configured_repositories()
+            if not configured_repos:
+                return ToolResult(
+                    success=False,
+                    error={
+                        "message": "No repository specified and no repositories configured. "
+                                   "Either provide a 'repository' parameter or configure repositories in settings.",
+                        "code": "MISSING_REPOSITORY"
+                    }
+                )
+            repositories_to_query = configured_repos
 
         try:
-            repo = self.manager.get_repository(repository)
+            all_prs = []
+            repo_errors = []
+            
+            # Query each repository
+            for repo_name in repositories_to_query:
+                try:
+                    repo = self.manager.get_repository(repo_name)
 
-            # Get pull requests with filters
-            pulls = repo.get_pulls(
-                state=state,
-                sort=sort,
-                direction=direction,
-                base=base if base else None,
-                head=head if head else None,
-            )
+                    # Get pull requests with filters
+                    pulls = repo.get_pulls(
+                        state=state,
+                        sort=sort,
+                        direction=direction,
+                        base=base if base else None,
+                        head=head if head else None,
+                    )
 
-            # Collect PR data
-            pr_list = []
-            count = 0
-            for pr in pulls:
-                if count >= limit:
-                    break
+                    # Collect PR data
+                    for pr in pulls:
+                        if len(all_prs) >= limit:
+                            break
 
-                pr_data = {
-                    "number": pr.number,
-                    "title": pr.title,
-                    "state": pr.state,
-                    "draft": pr.draft,
-                    "author": pr.user.login if pr.user else None,
-                    "created_at": pr.created_at.isoformat() if pr.created_at else None,
-                    "updated_at": pr.updated_at.isoformat() if pr.updated_at else None,
-                    "closed_at": pr.closed_at.isoformat() if pr.closed_at else None,
-                    "merged_at": pr.merged_at.isoformat() if pr.merged_at else None,
-                    "merged": pr.merged,
-                    "mergeable": pr.mergeable,
-                    "labels": [label.name for label in pr.labels],
-                    "assignees": [assignee.login for assignee in pr.assignees],
-                    "reviewers": [reviewer.login for reviewer in pr.requested_reviewers],
-                    "head": {
-                        "ref": pr.head.ref,
-                        "sha": pr.head.sha,
-                    },
-                    "base": {
-                        "ref": pr.base.ref,
-                        "sha": pr.base.sha,
-                    },
-                    "comments": pr.comments,
-                    "review_comments": pr.review_comments,
-                    "commits": pr.commits,
-                    "additions": pr.additions,
-                    "deletions": pr.deletions,
-                    "changed_files": pr.changed_files,
-                    "url": pr.html_url,
-                }
-                pr_list.append(pr_data)
-                count += 1
+                        pr_data = {
+                            "repository": repo_name,
+                            "number": pr.number,
+                            "title": pr.title,
+                            "state": pr.state,
+                            "draft": pr.draft,
+                            "author": pr.user.login if pr.user else None,
+                            "created_at": pr.created_at.isoformat() if pr.created_at else None,
+                            "updated_at": pr.updated_at.isoformat() if pr.updated_at else None,
+                            "closed_at": pr.closed_at.isoformat() if pr.closed_at else None,
+                            "merged_at": pr.merged_at.isoformat() if pr.merged_at else None,
+                            "merged": pr.merged,
+                            "mergeable": pr.mergeable,
+                            "labels": [label.name for label in pr.labels],
+                            "assignees": [assignee.login for assignee in pr.assignees],
+                            "reviewers": [reviewer.login for reviewer in pr.requested_reviewers],
+                            "head": {
+                                "ref": pr.head.ref,
+                                "sha": pr.head.sha,
+                            },
+                            "base": {
+                                "ref": pr.base.ref,
+                                "sha": pr.base.sha,
+                            },
+                            "comments": pr.comments,
+                            "review_comments": pr.review_comments,
+                            "commits": pr.commits,
+                            "additions": pr.additions,
+                            "deletions": pr.deletions,
+                            "changed_files": pr.changed_files,
+                            "url": pr.html_url,
+                        }
+                        all_prs.append(pr_data)
+                        
+                    if len(all_prs) >= limit:
+                        break
+                        
+                except (RepositoryNotFoundError, GithubException) as e:
+                    # Track errors but continue with other repos
+                    repo_errors.append({
+                        "repository": repo_name,
+                        "error": str(e)
+                    })
+                    continue
 
             return ToolResult(
                 success=True,
                 output={
-                    "repository": repository,
+                    "repositories_queried": repositories_to_query,
                     "state": state,
-                    "count": len(pr_list),
-                    "pull_requests": pr_list,
+                    "count": len(all_prs),
+                    "pull_requests": all_prs,
+                    "errors": repo_errors if repo_errors else None,
                 }
             )
 

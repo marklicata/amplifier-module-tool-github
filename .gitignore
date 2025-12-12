@@ -36,4 +36,4 @@ env/
 .DS_Store
 
 # Amplifier configuration (may contain tokens)
-.amplifier/settings.yaml
+.amplifier/

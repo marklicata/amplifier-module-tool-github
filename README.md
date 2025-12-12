@@ -40,7 +40,7 @@ uv pip install amplifier-module-tool-github
 
 ## Configuration
 
-Configuration is done through your `.amplifier/settings.yaml` file. See [`.amplifier/CONFIGURATION.md`](.amplifier/CONFIGURATION.md) for detailed examples.
+Configuration is done through your `.amplifier/settings.yaml` file. See [`CONFIGURATION.md`](CONFIGURATION.md) for detailed examples and [`examples/settings.yaml.example`](examples/settings.yaml.example) for a template.
 
 ### Quick Start Configuration
 
@@ -165,6 +165,23 @@ This module provides a **single unified tool** called `github` that supports **3
 
 Instead of having 34 separate tools, all GitHub interactions go through one tool with an `operation` parameter that specifies what action to perform.
 
+### Operation Types: User-Level vs Repository-Specific
+
+Operations fall into two categories:
+
+**Repository-Specific Operations** (Most operations)
+- Can work across ALL configured repositories when no `repository` parameter is provided
+- Or work within a single repository when `repository` parameter is specified
+- Examples: `list_issues`, `list_pull_requests`
+- If no repositories are configured and no repository parameter provided, an error is returned
+
+**User-Level Operations**
+- Work across your account or organization
+- No repository parameter required
+- Examples: `list_repositories`, `create_repository`
+
+> **Tip**: Configure repositories in `.amplifier/settings.yaml` to enable cross-repository queries. For example, list all issues across your configured repos without specifying a repository parameter!
+
 ### Using the GitHub Tool
 
 All operations follow this pattern:
@@ -185,14 +202,14 @@ result = await amplifier.execute_tool(
 
 The `operation` parameter accepts one of these values:
 
-**Issues (5 operations)**
+**Issues (5 operations)** - *All repository-specific*
 - `list_issues` - List issues in a repository
 - `get_issue` - Get detailed information about an issue
 - `create_issue` - Create a new issue
 - `update_issue` - Update an existing issue
 - `comment_issue` - Add a comment to an issue
 
-**Pull Requests (6 operations)**
+**Pull Requests (6 operations)** - *All repository-specific*
 - `list_pull_requests` - List pull requests
 - `get_pull_request` - Get PR details
 - `create_pull_request` - Create a new PR
@@ -200,31 +217,31 @@ The `operation` parameter accepts one of these values:
 - `merge_pull_request` - Merge a PR
 - `review_pull_request` - Submit a PR review
 
-**Repositories (5 operations)**
-- `get_repository` - Get repository information
-- `list_repositories` - List repositories for user/org
-- `create_repository` - Create a new repository
-- `get_file_content` - Get file contents from a repository
-- `list_repository_contents` - List contents of a directory
+**Repositories (5 operations)** - *Mixed*
+- `get_repository` - Get repository information [repo-specific]
+- `list_repositories` - List repositories for user/org [user-level]
+- `create_repository` - Create a new repository [user-level]
+- `get_file_content` - Get file contents from a repository [repo-specific]
+- `list_repository_contents` - List contents of a directory [repo-specific]
 
-**Commits (2 operations)**
+**Commits (2 operations)** - *All repository-specific*
 - `list_commits` - List commits in a repository
 - `get_commit` - Get detailed commit information
 
-**Branches (4 operations)**
+**Branches (4 operations)** - *All repository-specific*
 - `list_branches` - List branches in a repository
 - `get_branch` - Get branch information
 - `create_branch` - Create a new branch
 - `compare_branches` - Compare two branches
 
-**Releases & Tags (5 operations)**
+**Releases & Tags (5 operations)** - *All repository-specific*
 - `list_releases` - List releases
 - `get_release` - Get release details
 - `create_release` - Create a new release
 - `list_tags` - List repository tags
 - `create_tag` - Create a new tag
 
-**Actions/Workflows (7 operations)**
+**Actions/Workflows (7 operations)** - *All repository-specific*
 - `list_workflows` - List GitHub Actions workflows
 - `get_workflow` - Get workflow details
 - `trigger_workflow` - Trigger a workflow run
@@ -235,15 +252,36 @@ The `operation` parameter accepts one of these values:
 
 ## Usage Examples
 
-### Example 1: List Issues
+### Example 1: List Issues Across All Configured Repositories
 
 ```python
+# With repositories configured in settings.yaml, query across all repos
 result = await amplifier.execute_tool(
     "github",
     {
         "operation": "list_issues",
         "parameters": {
-            "repository": "microsoft/vscode",
+            "state": "open",
+            "assignee": "myusername",  # Find all issues assigned to me
+            "limit": 50
+        }
+    }
+)
+
+# Output includes issues from all configured repositories
+# Each issue includes "repository" field showing which repo it's from
+```
+
+### Example 2: List Issues in a Specific Repository
+
+```python
+# Query a single repository
+result = await amplifier.execute_tool(
+    "github",
+    {
+        "operation": "list_issues",
+        "parameters": {
+            "repository": "microsoft/vscode",  # Specify exact repo
             "state": "open",
             "labels": ["bug", "verified"],
             "limit": 10
@@ -252,7 +290,7 @@ result = await amplifier.execute_tool(
 )
 ```
 
-### Example 2: Create a Pull Request
+### Example 3: Create a Pull Request
 
 ```python
 result = await amplifier.execute_tool(

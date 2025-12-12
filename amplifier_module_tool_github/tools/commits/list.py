@@ -36,7 +36,7 @@ class ListCommitsTool(GitHubBaseTool):
             "properties": {
                 "repository": {
                     "type": "string",
-                    "description": "Full repository name in format 'owner/repo' (e.g., 'microsoft/vscode')"
+                    "description": "[Required] Full repository name in format 'owner/repo' (e.g., 'microsoft/vscode'). This is a repository-specific operation."
                 },
                 "sha": {
                     "type": "string",

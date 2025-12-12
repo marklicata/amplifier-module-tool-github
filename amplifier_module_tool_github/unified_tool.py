@@ -107,9 +107,19 @@ class GitHubUnifiedTool:
     def description(self) -> str:
         """Tool description."""
         return (
-            "Interact with GitHub repositories, issues, pull requests, commits, branches, "
-            "releases, and workflows. Supports 34 different operations including managing "
-            "issues, creating PRs, browsing code, triggering workflows, and more."
+            "Interact with GitHub repositories and resources. When repositories are configured in settings, "
+            "many operations can query across ALL configured repos automatically. Otherwise, specify a repository "
+            "parameter to target a specific repo. Supports 34 operations for issues, PRs, commits, branches, "
+            "workflows, releases, and more.\n\n"
+            "Cross-Repository Queries (when repositories configured):\n"
+            "- list_issues: Find issues across all your configured repos (filter by assignee, creator, labels)\n"
+            "- list_pull_requests: Find PRs across all your repos (filter by state, author)\n\n"
+            "Repository-Specific Operations:\n"
+            "- All operations work on a specific repository when 'repository' parameter is provided\n"
+            "- Examples: get_commit, create_branch, trigger_workflow, merge_pull_request\n\n"
+            "User-Level Operations:\n"
+            "- list_repositories: List repos for a user/org\n"
+            "- create_repository: Create a new repo"
         )
 
     @property

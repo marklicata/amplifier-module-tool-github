@@ -23,9 +23,10 @@ class ListRepositoriesTool(GitHubBaseTool):
     @property
     def description(self) -> str:
         return (
-            "List repositories for a specific user or organization. Returns basic information "
-            "about each repository. Can filter by type (all, public, private, forks, sources, member) "
-            "and sort by various criteria."
+            "[User-Level Operation] List repositories for a specific user or organization. "
+            "Returns basic information about each repository. Can filter by type (all, public, "
+            "private, forks, sources, member) and sort by various criteria. Use this to discover "
+            "repositories without needing a specific repository context."
         )
 
     @property
@@ -35,7 +36,7 @@ class ListRepositoriesTool(GitHubBaseTool):
             "properties": {
                 "owner": {
                     "type": "string",
-                    "description": "GitHub username or organization name"
+                    "description": "[Required] GitHub username or organization name to list repositories for"
                 },
                 "type": {
                     "type": "string",

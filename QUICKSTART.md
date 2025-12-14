@@ -149,6 +149,8 @@ modules:
 
 For security or to limit scope, you can configure specific repositories in `.amplifier/settings.yaml`:
 
+> 💡 **Need more details?** See the complete **[Configuration Guide](docs/CONFIGURATION.md)** for all configuration options and examples.
+
 ```yaml
 # .amplifier/settings.yaml
 modules:
@@ -560,6 +562,16 @@ Error: RATE_LIMIT_EXCEEDED
 
 ## Need Help?
 
-- 📖 [Full Documentation](README.md)
-- 🐛 [Report Issues](https://github.com/microsoft/amplifier-module-tool-github/issues)
-- 💬 [Discussions](https://github.com/microsoft/amplifier/discussions)
+### Documentation Resources
+
+- 📖 **[Full Documentation](README.md)** - Complete module reference
+- 📘 **[Configuration Guide](docs/CONFIGURATION.md)** - Detailed authentication and config options
+- 🔧 **[Development Guide](docs/DEVELOPMENT.md)** - Contributing and extending the module
+- ✅ **[Test Coverage](docs/COMPREHENSIVE_TEST_COVERAGE.md)** - Complete test suite documentation
+
+### Support & Community
+
+- 💬 **[Support Resources](docs/SUPPORT.md)** - Getting help and community resources
+- 🐛 **[Report Issues](https://github.com/microsoft/amplifier-module-tool-github/issues)** - Bug reports and feature requests
+- 🔒 **[Security Policy](docs/SECURITY.md)** - Report security vulnerabilities
+- 📋 **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** - Community guidelines

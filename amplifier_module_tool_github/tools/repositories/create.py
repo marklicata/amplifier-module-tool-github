@@ -162,11 +162,11 @@ class CreateRepositoryTool(GitHubBaseTool):
 
             # Create repository for organization or user
             if organization:
-                org = self.manager.github.get_organization(organization)
+                org = self.manager.client.get_organization(organization)
                 repo = org.create_repo(**repo_kwargs)
                 owner_type = "organization"
             else:
-                user = self.manager.github.get_user()
+                user = self.manager.client.get_user()
                 repo = user.create_repo(**repo_kwargs)
                 owner_type = "user"
 

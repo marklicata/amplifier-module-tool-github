@@ -112,14 +112,14 @@ class CreateTagTool(GitHubBaseTool):
             if message:
                 # Get authenticated user info for tagger if not provided
                 if not tagger_name or not tagger_email:
-                    user = self.manager.github.get_user()
+                    user = self.manager.client.get_user()
                     if not tagger_name:
                         tagger_name = user.name or user.login
                     if not tagger_email:
                         tagger_email = user.email or f"{user.login}@users.noreply.github.com"
 
                 # Create tag object
-                from datetime import datetime
+                from datetime import datetime, timezone
                 tag_obj = repo.create_git_tag(
                     tag=tag_name,
                     message=message,
@@ -128,10 +128,9 @@ class CreateTagTool(GitHubBaseTool):
                     tagger={
                         "name": tagger_name,
                         "email": tagger_email,
-                        "date": datetime.utcnow().isoformat() + "Z"
+                        "date": datetime.now(tz=timezone.utc).isoformat() + "Z"
                     }
                 )
-
                 # Create reference to the tag
                 ref = repo.create_git_ref(ref=f"refs/tags/{tag_name}", sha=tag_obj.sha)
                 

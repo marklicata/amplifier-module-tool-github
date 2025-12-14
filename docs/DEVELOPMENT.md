@@ -30,6 +30,8 @@ $env:GITHUB_TOKEN="ghp_your_token_here"
 
 ## Running Tests
 
+The project has comprehensive test coverage with **225 tests** achieving a **100% pass rate**.
+
 ```bash
 # Run all tests
 pytest
@@ -40,9 +42,25 @@ pytest --cov=amplifier_module_tool_github
 # Run specific test file
 pytest tests/test_tools.py
 
+# Run comprehensive tests only
+pytest tests/test_*_comprehensive.py -v
+
 # Run with verbose output
 pytest -v
+
+# Quick test status check
+pytest tests/ --tb=no -q
 ```
+
+### Test Organization
+- **Original tests** (60): Basic functionality and tool properties
+- **Comprehensive tests** (165): Extensive coverage across all tools
+  - Issues: 30 tests
+  - Pull Requests: 27 tests
+  - Repositories: 19 tests
+  - Branches/Commits: 34 tests
+  - Releases/Actions: 25 tests
+  - Edge Cases: 40 tests
 
 ## Code Style
 

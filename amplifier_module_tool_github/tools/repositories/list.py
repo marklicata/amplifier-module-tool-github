@@ -89,13 +89,13 @@ class ListRepositoriesTool(GitHubBaseTool):
         try:
             # Try to get as organization first, then as user
             try:
-                org = self.manager.github.get_organization(owner)
+                org = self.manager.client.get_organization(owner)
                 repos = org.get_repos(type=repo_type, sort=sort, direction=direction)
                 owner_type = "organization"
             except GithubException as e:
                 if e.status == 404:
                     # Not an organization, try as user
-                    user = self.manager.github.get_user(owner)
+                    user = self.manager.client.get_user(owner)
                     repos = user.get_repos(type=repo_type, sort=sort, direction=direction)
                     owner_type = "user"
                 else:

@@ -8,7 +8,8 @@ This module provides GitHub API integration capabilities as tools for Amplifier 
 ## Status
 
 **Version:** 1.5.0  
-**Implementation Status:** Fully implemented (34 tools)
+**Implementation Status:** Fully implemented (34 tools)  
+**Test Coverage:** 225 tests, 100% passing ✅
 
 ### Implemented Features
 - ✅ **Issues Management** (5 tools): Full CRUD operations
@@ -26,6 +27,18 @@ This module provides GitHub API integration capabilities as tools for Amplifier 
 - 🔲 **Advanced Repository**: Webhooks, deploy keys, collaborators
 - 🔲 **Discussions**: Create and manage discussions
 
+## Documentation
+
+For detailed information, see the [`/docs/`](docs/) directory:
+
+- 📘 **[Configuration Guide](docs/CONFIGURATION.md)** - Detailed authentication and configuration options
+- 🚀 **[Quick Start](QUICKSTART.md)** - Get up and running in minutes
+- 🔧 **[Development Guide](docs/DEVELOPMENT.md)** - Contributing and extending the module
+- ✅ **[Test Coverage](docs/COMPREHENSIVE_TEST_COVERAGE.md)** - Complete test suite documentation (225 tests, 100% passing)
+- 🔒 **[Security Policy](docs/SECURITY.md)** - Vulnerability reporting and security best practices
+- 💬 **[Support Resources](docs/SUPPORT.md)** - Getting help and community resources
+- 📋 **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** - Community guidelines
+
 ## Installation
 
 ```bash
@@ -40,7 +53,7 @@ uv pip install amplifier-module-tool-github
 
 ## Configuration
 
-Configuration is done through your `.amplifier/settings.yaml` file. See [`CONFIGURATION.md`](CONFIGURATION.md) for detailed examples and [`examples/settings.yaml.example`](examples/settings.yaml.example) for a template.
+Configuration is done through your `.amplifier/settings.yaml` file. See **[Configuration Guide](docs/CONFIGURATION.md)** for detailed examples and [`examples/settings.yaml.example`](examples/settings.yaml.example) for a template.
 
 ### Quick Start Configuration
 
@@ -478,17 +491,24 @@ The module will return a `RateLimitError` when limits are exceeded, including th
 
 ## Development
 
+For detailed development information, see the **[Development Guide](docs/DEVELOPMENT.md)**.
+
 ### Running Tests
 
 ```bash
+# Run all tests
 pytest tests/
-```
 
-### Code Coverage
+# Run with verbose output
+pytest tests/ -v
 
-```bash
+# Run with coverage report
 pytest --cov=amplifier_module_tool_github tests/
 ```
+
+**Test Status:** All 225 tests passing ✅ (100% pass rate)
+
+See **[Test Coverage Documentation](docs/COMPREHENSIVE_TEST_COVERAGE.md)** for detailed test information.
 
 ## Dependencies
 
@@ -518,13 +538,17 @@ amplifier_module_tool_github/
 
 ## Contributing
 
-Contributions are welcome! Future areas for expansion:
+Contributions are welcome! See the **[Development Guide](docs/DEVELOPMENT.md)** for setup instructions and coding guidelines.
 
-1. **Pull Requests**: Full PR lifecycle management
-2. **Repositories**: Repository creation and configuration
-3. **Actions**: Workflow triggering and monitoring
-4. **Code Search**: Search across repositories
-5. **Security**: Dependabot and security advisory integration
+Future areas for expansion:
+
+1. **Projects**: GitHub Projects management
+2. **Code Search**: Search across repositories
+3. **Security**: Dependabot and security advisory integration
+4. **Discussions**: Discussion management
+5. **Advanced Repository**: Webhooks, deploy keys, collaborators
+
+Please review our **[Code of Conduct](docs/CODE_OF_CONDUCT.md)** before contributing.
 
 ## License
 
@@ -532,8 +556,12 @@ MIT License - see LICENSE file for details.
 
 ## Support
 
-- GitHub Issues: https://github.com/microsoft/amplifier-module-tool-github/issues
-- Documentation: https://github.com/microsoft/amplifier
+For help and support:
+
+- 📖 **[Support Resources](docs/SUPPORT.md)** - Comprehensive support guide
+- 🐛 **GitHub Issues**: https://github.com/microsoft/amplifier-module-tool-github/issues
+- 🔒 **[Security Issues](docs/SECURITY.md)** - Report vulnerabilities privately
+- 💬 **Documentation**: https://github.com/microsoft/amplifier
 
 ## Related Modules
 

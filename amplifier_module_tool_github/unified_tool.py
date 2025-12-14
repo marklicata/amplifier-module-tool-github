@@ -111,6 +111,11 @@ class GitHubUnifiedTool:
             "many operations can query across ALL configured repos automatically. Otherwise, specify a repository "
             "parameter to target a specific repo. Supports 34 operations for issues, PRs, commits, branches, "
             "workflows, releases, and more.\n\n"
+            "IMPORTANT - Username Parameters:\n"
+            "- When filtering by username (assignee, creator, mentioned, etc.), use the actual GitHub username\n"
+            "- Example: Use 'octocat' NOT '@octocat'\n"
+            "- Special value '@me' is not supported. It should be the authenticated username\n"
+            "- To get the authenticated user's username, first call get_user operation\n\n"
             "Cross-Repository Queries (when repositories configured):\n"
             "- list_issues: Find issues across all your configured repos (filter by assignee, creator, labels)\n"
             "- list_pull_requests: Find PRs across all your repos (filter by state, author)\n\n"
@@ -143,6 +148,83 @@ class GitHubUnifiedTool:
             "additionalProperties": False,
         }
 
+    def _resolve_username_in_parameters(self, parameters: dict[str, Any]) -> tuple[dict[str, Any], ToolResult | None]:
+        """
+        Recursively resolve @me to authenticated username in all username parameters.
+        
+        This is the central location where @me translation happens for ALL operations.
+        Individual tools don't need to handle this - it's done here at the entry point.
+        
+        Username parameters that support @me:
+        - assignee (string)
+        - assignees (array of strings)
+        - creator (string)
+        - mentioned (string)
+        - author (string)
+        - reviewers (array of strings)
+        - add_reviewers (array of strings)
+        - remove_reviewers (array of strings)
+        
+        Args:
+            parameters: Parameters dict from the operation call
+        
+        Returns:
+            Tuple of (resolved_parameters, error_result)
+            - If successful: (resolved_parameters, None)
+            - If error: (original_parameters, ToolResult with error)
+        """
+        # Username parameter names that support @me translation
+        STRING_USERNAME_PARAMS = {"assignee", "creator", "mentioned", "author"}
+        ARRAY_USERNAME_PARAMS = {"assignees", "reviewers", "add_reviewers", "remove_reviewers"}
+        
+        resolved_params = parameters.copy()
+        
+        # Get authenticated user once if needed
+        authenticated_username = None
+        needs_resolution = any(
+            (param in parameters and parameters[param] == "@me") 
+            for param in STRING_USERNAME_PARAMS
+        ) or any(
+            (param in parameters and isinstance(parameters[param], list) and "@me" in parameters[param])
+            for param in ARRAY_USERNAME_PARAMS
+        )
+        
+        if needs_resolution:
+            try:
+                user = self.manager.client.get_user()
+                authenticated_username = user.login
+                logger.debug(f"Resolved @me to {authenticated_username}")
+            except Exception as e:
+                error_msg = str(e) if str(e) else repr(e)
+                return (parameters, ToolResult(
+                    success=False,
+                    error={
+                        "message": f"Failed to resolve @me to authenticated user: {error_msg}",
+                        "code": "AUTHENTICATION_ERROR",
+                        "type": type(e).__name__
+                    }
+                ))
+        
+        # Resolve string username parameters
+        for param in STRING_USERNAME_PARAMS:
+            if param in resolved_params and resolved_params[param] == "@me":
+                resolved_params[param] = authenticated_username
+                logger.debug(f"Resolved {param}=@me to {authenticated_username}")
+        
+        # Resolve array username parameters
+        for param in ARRAY_USERNAME_PARAMS:
+            if param in resolved_params and isinstance(resolved_params[param], list):
+                original_list = resolved_params[param]
+                if "@me" in original_list:
+                    resolved_list = [
+                        authenticated_username if username == "@me" else username
+                        for username in original_list
+                    ]
+                    resolved_params[param] = resolved_list
+                    logger.debug(f"Resolved {param} array containing @me to {resolved_list}")
+        
+        return (resolved_params, None)
+
     async def execute(self, input_data: dict[str, Any]) -> ToolResult:
         """
         Execute a GitHub operation.
@@ -165,6 +247,12 @@ class GitHubUnifiedTool:
                 error = ValidationError("parameters must be an object")
                 return ToolResult(success=False, error=error.to_dict())
 
+            # Resolve @me in all username parameters BEFORE passing to individual tools
+            # This is the single point where @me translation happens for ALL operations
+            parameters, error = self._resolve_username_in_parameters(parameters)
+            if error:
+                return error
+
             # Get the specific tool
             tool = self._tools.get(operation)
             if not tool:
@@ -174,7 +262,7 @@ class GitHubUnifiedTool:
                 )
                 return ToolResult(success=False, error=error.to_dict())
 
-            # Execute the specific tool
+            # Execute the specific tool with resolved parameters
             logger.debug(f"Executing GitHub operation: {operation}")
             result = await tool.execute(parameters)
             

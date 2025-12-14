@@ -106,3 +106,63 @@ class GitHubBaseTool:
                 }
             )
         return None
+    
+    def _resolve_username(self, username: str | None) -> tuple[str | None, ToolResult | None]:
+        """
+        Resolve a username, translating @me to the authenticated user's username.
+        
+        NOTE: @me resolution is now handled centrally in unified_tool.py's execute() method
+        before parameters reach individual tools. These helpers are kept as fallbacks for
+        edge cases or direct tool invocation, but normal operation doesn't require calling them.
+        
+        Args:
+            username: Username string, which may be "@me", an actual username, or None
+        
+        Returns:
+            Tuple of (resolved_username, error_result)
+            - If successful: (resolved_username, None)
+            - If error: (None, ToolResult with error)
+        """
+        if username == "@me":
+            try:
+                user = self.manager.client.get_user()
+                return (user.login, None)
+            except Exception as e:
+                error_msg = str(e) if str(e) else repr(e)
+                return (None, ToolResult(
+                    success=False,
+                    error={
+                        "message": f"Failed to resolve @me to authenticated user: {error_msg}",
+                        "code": "AUTHENTICATION_ERROR",
+                        "type": type(e).__name__
+                    }
+                ))
+        return (username, None)
+    
+    def _resolve_usernames(self, usernames: list[str] | None) -> tuple[list[str] | None, ToolResult | None]:
+        """
+        Resolve a list of usernames, translating any @me to the authenticated user's username.
+        
+        NOTE: @me resolution is now handled centrally in unified_tool.py's execute() method
+        before parameters reach individual tools. This helper is kept as a fallback.
+        
+        Args:
+            usernames: List of username strings, which may include "@me"
+        
+        Returns:
+            Tuple of (resolved_usernames, error_result)
+            - If successful: (resolved_usernames, None)
+            - If error: (None, ToolResult with error)
+        """
+        if not usernames:
+            return (usernames, None)
+        
+        resolved = []
+        for username in usernames:
+            resolved_username, error = self._resolve_username(username)
+            if error:
+                return (None, error)
+            if resolved_username:
+                resolved.append(resolved_username)
+        
+        return (resolved, None)

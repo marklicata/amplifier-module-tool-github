@@ -104,6 +104,8 @@ class ListIssuesTool(GitHubBaseTool):
         sort = input_data.get("sort", "created")
         direction = input_data.get("direction", "desc")
         limit = input_data.get("limit", 30)
+        
+        # Note: @me translation is handled centrally in unified_tool.py before reaching this tool
 
         # Determine which repositories to query
         if repository:
@@ -209,10 +211,12 @@ class ListIssuesTool(GitHubBaseTool):
             )
 
         except Exception as e:
+            error_msg = str(e) if str(e) else repr(e)
             return ToolResult(
                 success=False,
                 error={
-                    "message": f"Unexpected error: {str(e)}",
-                    "code": "UNEXPECTED_ERROR"
+                    "message": f"Unexpected error: {error_msg}",
+                    "code": "UNEXPECTED_ERROR",
+                    "type": type(e).__name__
                 }
             )

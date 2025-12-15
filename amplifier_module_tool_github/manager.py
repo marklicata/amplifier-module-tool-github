@@ -58,6 +58,7 @@ class GitHubManager:
         self.prompt_if_missing = config.get("prompt_if_missing", True)
         self.base_url = config.get("base_url", "https://api.github.com")
         self.client = None
+        self.github_user = None
         
         # Parse and store configured repositories
         repos_raw = config.get("repositories", [])
@@ -106,8 +107,8 @@ class GitHubManager:
                 self.client = Github(auth=auth)
 
             # Verify authentication
-            user = self.client.get_user()
-            logger.info(f"Authenticated as: {user.login}")
+            self.github_user = self.client.get_user()
+            logger.info(f"Authenticated as: {self.github_user.login}")
 
         except BadCredentialsException:
             logger.error("GitHub authentication failed - invalid token")

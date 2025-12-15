@@ -191,8 +191,7 @@ class GitHubUnifiedTool:
         
         if needs_resolution:
             try:
-                user = self.manager.client.get_user()
-                authenticated_username = user.login
+                authenticated_username = self.manager.github_user.login
                 logger.debug(f"Resolved @me to {authenticated_username}")
             except Exception as e:
                 error_msg = str(e) if str(e) else repr(e)

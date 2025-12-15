@@ -246,8 +246,7 @@ class TestCreateRepositoryToolComprehensive:
         mock_repo.default_branch = "main"
         mock_repo.created_at = create_mock_datetime("2024-01-01")
         mock_user.create_repo.return_value = mock_repo
-        self.manager.client = Mock()
-        self.manager.client.get_user.return_value = mock_user
+        self.manager.github_user = mock_user
 
         result = await self.tool.execute({"name": "new-repo"})
         
@@ -272,8 +271,7 @@ class TestCreateRepositoryToolComprehensive:
         mock_repo.default_branch = "main"
         mock_repo.created_at = create_mock_datetime("2024-01-01")
         mock_user.create_repo.return_value = mock_repo
-        self.manager.client = Mock()
-        self.manager.client.get_user.return_value = mock_user
+        self.manager.github_user = mock_user
 
         result = await self.tool.execute({
             "name": "private-repo",
@@ -345,8 +343,7 @@ class TestCreateRepositoryToolComprehensive:
         """Test creating a repository with existing name."""
         mock_user = Mock()
         mock_user.create_repo.side_effect = GithubException(422, {"message": "name already exists"})
-        self.manager.client = Mock()
-        self.manager.client.get_user.return_value = mock_user
+        self.manager.github_user = mock_user
 
         result = await self.tool.execute({"name": "existing-repo"})
         

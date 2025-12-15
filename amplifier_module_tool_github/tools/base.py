@@ -125,7 +125,7 @@ class GitHubBaseTool:
         """
         if username == "@me":
             try:
-                user = self.manager.client.get_user()
+                user = self.manager.github_user
                 return (user.login, None)
             except Exception as e:
                 error_msg = str(e) if str(e) else repr(e)

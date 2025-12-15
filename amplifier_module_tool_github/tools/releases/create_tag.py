@@ -112,7 +112,7 @@ class CreateTagTool(GitHubBaseTool):
             if message:
                 # Get authenticated user info for tagger if not provided
                 if not tagger_name or not tagger_email:
-                    user = self.manager.client.get_user()
+                    user = self.manager.github_user
                     if not tagger_name:
                         tagger_name = user.name or user.login
                     if not tagger_email:
